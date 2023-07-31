@@ -1,4 +1,4 @@
-
+const crypto = require('crypto');
 const User = require("../models/user");
 const express = require("express");
 
@@ -9,7 +9,7 @@ var jwt = require("jsonwebtoken");
 const JWT_SECRET = "jwtsecret";
 
 
-exports.getUser = async (req, res) => {
+const  getUser = async (req, res) => {
   try {
     const userid = req.user.id;
     const user = await User.findById(userid);
@@ -19,56 +19,148 @@ exports.getUser = async (req, res) => {
 };
 
 
- exports.postLogin =  async (req, res) => {
+ const  postLogin =  async (req, res) => {
     let success = false;
     let errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success, errors: errors.array() });
-    }
     const { email, password } = req.body;
-    try {
-      const user = await User.findOne({ email: email });
-      console.log(user);
-      if (!user) {
-        return res
-          .status(400)
-          .json({ success, errors: "write correct credencials" });
-      }
-      const passcompare = await bcrypt.compare(password, user.password);
-      if (!passcompare) {
-        return res
-          .status(400)
-          .json({ success, errors: "write correct credencials" });
-      }
-      const data = {
-        user: { id: user._id },
-      };
 
-      const token = jwt.sign(data, JWT_SECRET);
 
-      res
-        .json({
-          success: true,
-          message: "Authentication successful",
-          token: token,
-        })
-        .redirect("/");
-    } catch (error) {
-      console.log({ success, error });
+    if (!errors.isEmpty()) {
+      return res.status(422).render('auth/login', {
+        path: '/login',
+        pageTitle: 'Login',
+        errorMessage: errors.array()[0].msg,
+        oldInput: {
+          email: email,
+          password: password
+        },
+        validationErrors: errors.array()
+      });
     }
+    
+      User.findOne({ email: email })
+    .then(user => {
+      if (!user) {
+        return res.status(422).render('auth/login', {
+          path: '/login',
+          pageTitle: 'Login',
+          errorMessage: 'Invalid email or password.',
+          oldInput: {
+            email: email,
+            password: password
+          },
+          validationErrors: []
+        });
+      }
+      bcrypt
+        .compare(password, user.password)
+        .then(doMatch => {
+          if (doMatch) {
+            const data = {
+              user: { id: user._id },
+            };
+            const token = jwt.sign(data, JWT_SECRET);
+            console.log({
+                success: true,
+                message: "Authentication successful",
+                token: token,
+              })
+            req.session.isLoggedIn = true;
+            req.session.user = user;
+            req.session.token = token;;
+            return req.session.save(err => {
+              console.log(err);
+              res.redirect('/');
+            });
+          }
+          return res.status(422).render('auth/login', {
+            path: '/login',
+            pageTitle: 'Login',
+            errorMessage: 'Invalid email or password.',
+            oldInput: {
+              email: email,
+              password: password
+            },
+            validationErrors: []
+          });
+        }) .catch(err => {
+          console.log(err);
+          res.redirect('/auth/login');
+        });
+
+
+    }).redirect("/");
+   
+  };
+
+
+
+const  getSignup =  (req, res,next) => {
+  let message = req.flash('error');
+  if (message.length > 0) {
+    message = message[0];
+  } else {
+    message = null;
   }
-;
-
-exports.getSignup =  (req, res) => {
-  res.render(`auth/signup`);
+  res.render('auth/signup', {
+    path: '/signup',
+    pageTitle: 'Signup',
+    errorMessage: message,
+    oldInput: {
+      email: '',
+      password: '',
+      confirmPassword: ''
+    },
+    validationErrors: []
+  });
 };
-exports.getLogin =  (req, res) => {
-  res.render(`auth/login`);
+
+
+
+
+
+const  getLogin =  (req, res) => {
+
+  let message = req.flash('error');
+  if (message.length > 0) {
+    message = message[0];
+  } else {
+    message = null;
+  }
+  res.render('auth/login', {
+    path: '/login',
+    pageTitle: 'Login',
+    errorMessage: message,
+    oldInput: {
+      email: '',
+      password: ''
+    },
+    validationErrors: []
+  });
 };
 
-exports.postSignup =  async (req, res) => {
-    let success = false;
+
+
+
+
+const  postSignup =  async (req, res) => {
+  let success = false;
+  const {email , password,usernameq } = req.body;
     const errors = validationResult(req);
+    if(!errors.isEmpty()){
+      console.log(errors.array());
+      return res.status(422).render("auth/signup",{
+        path: '/signup',
+        pageTitle: 'Signup',
+        errorMessage: errors.array()[0].msg,
+        oldInput: {
+          email: email,
+          password: password,
+          confirmPassword: req.body.confirmPassword
+        },
+        validationErrors: errors.array()
+      })
+    }
     try {
       let user = await User.findOne({ email: req.body.email });
       if (user) {
@@ -79,21 +171,36 @@ exports.postSignup =  async (req, res) => {
             errors: "sorry a user with this email already exist ",
           });
       }
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
-      user = await User.create({
-        username: req.body.username,
-        email: req.body.email,
+      bcrypt
+    .hash(password, 12)
+    .then(hashedPassword => {
+      const user = new User({
+        email: email,
         password: hashedPassword,
+      
       });
+      return user.save();
+    }).then(result =>{
+      res.redirect("/auth/login");
+    })
 
       success = true;
       res.json({ success, user });
     } catch (error) {
       console.error(error.message);
 
-      res.redirect("/signup");
+      res.redirect("/auth/signup");
     }
   };
 
 
 
+
+  const postLogout =(req, res, next) => {
+  req.session.destroy(err => {
+    console.log(err);
+    res.redirect('/auth/login');
+  });
+  }
+
+module.exports = {getUser,postLogin,getSignup,postSignup,getLogin,postLogout};

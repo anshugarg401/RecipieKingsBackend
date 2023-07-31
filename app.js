@@ -1,12 +1,9 @@
 
 const connecttomongo = require('./middleware/mongoose');
-// const passportInitialize = require("./controllers/passport") 
-
-
 
 const express = require('express');
 const passport = require('passport');
-require('./controllers/passport');
+
 const cookieSession = require('cookie-session');
 const dotenv = require('dotenv').config();
 const bodyParser = require('body-parser');
@@ -15,23 +12,21 @@ const port = 3000;
 const app = express();
 
 
-app.set('views', './views');
+ app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 connecttomongo();
 
 
-const authRoutes = require('./routes/auth');
-const passauth = require("./routes/passport");
 
-
-
+const passgoogle = require("./routes/passgoogle");
+const passlinkedin = require("./routes/passlinkedin");
+const passauth = require("./routes/auth");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 
 
-app.use('/auth',authRoutes);
 
 app.use(cookieSession({
   name: 'auth',
@@ -47,7 +42,12 @@ app.use(passport.initialize());
 
 app.use(passport.session());
 
-app.use("/passport",passauth);
+app.use("/passgoogle",passgoogle);
+app.use("/passlinkedin",passlinkedin);
+app.use('/auth',passauth);
+
+
+
 
  
 

@@ -1,30 +1,26 @@
 const passport = require('passport');
-require('../controllers/passport');
+require('../controllers/passgoogle');
  const express = require('express'); 
  const router = express.Router(); 
 
  router.get('/', (req, res) => {
-    res.send("<button><a href='/auth'>Login With Google</a></button>")
+    res.send("<button><a href='/passgoogle/auth/google'>Login With Google</a></button>")
   });
   
   // Auth 
-  router.get('/auth' , passport.authenticate('google', { scope:
+  router.get('/auth/google' , passport.authenticate('google', { scope:
     [ 'email', 'profile' ]
   }));
   
   // Auth Callback
-  router.get( '/auth/callback',
+  router.get( '/google/callback',
     passport.authenticate( 'google', {
-        successRedirect: '/auth/callback/success',
+        successRedirect: '/auth/getuser',
         failureRedirect: '/auth/callback/failure'
   }));
   
-  // Success 
-  router.get('/auth/callback/success' , (req , res) => {
-    if(!req.user)
-        res.redirect('/auth/callback/failure');
-    res.send("Welcome " + req.user.email);
-  });
+  // Success directed to getuser-- controllers/auth/
+
   
   // failure
   router.get('/auth/callback/failure' , (req , res) => {

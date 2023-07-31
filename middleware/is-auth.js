@@ -1,8 +1,9 @@
 
 var jwt = require("jsonwebtoken");
-const JWT_SECRET = "jwtsecret";
+
 
 const isAuth = (req,res,next)=>{
+    let success = false;
 
     const token = req.headers["auth-token"];
     if(!token){
@@ -11,9 +12,10 @@ const isAuth = (req,res,next)=>{
     try {
         const data = jwt.verify(token,JWT_SECRET);
         req.user = data.user;
+        res.json({success: true,message:"successfull authentication"});
         next();
     } catch (error) {
-        res.status(401).json({error:"please authenticate using a valid token"});
+        res.status(401).json({success,error:"please authenticate using a valid token"});
     }
    
 
