@@ -4,9 +4,14 @@ require("../controllers/passlinkedin");
 const passport = require('passport');
 const { validationResult } = require("express-validator");
 router.get('/profile', isLoggedIn, function (req, res) {
-    res.render('<p>This is Profile Page </p>', {
-      user: req.user // get the user out of session and pass to template
-    });
+    res.render('auth/login'
+    
+    ,(req, res, next) => {
+      req.session.destroy(err => {
+        console.log(err);
+        res.redirect('/auth/login');
+      });
+      });
   });
 
 
@@ -29,8 +34,7 @@ router.get(
   );
 
   router.get("/", (req, res) => {
-    if (req.user) {
-
+    if (req.user) { 
       const name = req.user.name;
       const email = req.user.email;
         console.log(req.user);
@@ -41,9 +45,10 @@ router.get(
         `
       )
     } else {
-      res.send(`<center style="font-size:160%"> <p>This is Home Page </p>
-      <p>User is not Logged In</p>
-      <img style="cursor:pointer;"  onclick="window.location='/auth/linkedIn'" src="http://www.bkpandey.com/wp-content/uploads/2017/09/linkedinlogin.png"/>
+      res.send(`<center style="font-size:140%"> <p>User is Logged In </p>
+      <p>Name: ${name} ${family} </p>
+      <p> Linkedn Email: ${email} </p>
+      <img src="${photo}"/>
       </center>
       `);
     }

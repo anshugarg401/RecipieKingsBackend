@@ -11,8 +11,8 @@ const bcrypt = require('bcrypt');
   
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_KEY,
-    clientSecret:process.env.GOOGLE_SECRET, 
-    callbackURL:"http://127.0.0.1:3000/passport/google/callback",
+    clientSecret: process.env.GOOGLE_SECRET, 
+    callbackURL:"http://127.0.0.1:3000/passgoogle/google/callback",
     passReqToCallback:true
   },
   function(request, accessToken, refreshToken, profile, done) {
