@@ -4,7 +4,8 @@ const connecttomongo = require('./middleware/mongoose');
 const express = require('express');
 const passport = require('passport');
 
-const cookieSession = require('cookie-session');
+
+const session = require('express-session');
 const dotenv = require('dotenv').config();
 const bodyParser = require('body-parser');
 const hostname = '127.0.0.1';
@@ -28,13 +29,14 @@ app.use(bodyParser.json());
 
 
 
-app.use(cookieSession({
+app.use(session({
+  secret: process.env.SESSION_SECRET,
   name: 'auth',
   keys: ['key1', 'key2']
 }));
 
 
-app.use(cookieSession({
+app.use(session({
   name: 'google-auth-session',
   keys: ['key1', 'key2']
 }));

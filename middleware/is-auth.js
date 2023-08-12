@@ -5,7 +5,7 @@ var jwt = require("jsonwebtoken");
 const isAuth = (req,res,next)=>{
     let success = false;
 
-    const token = req.headers["auth-token"];
+    let token = req.headers["x-access-token"];
     if(!token){
         res.status(401).json({error:"please authenticate using a valid token"});    
     }

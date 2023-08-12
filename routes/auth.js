@@ -2,10 +2,14 @@ const express = require("express");
 const router = express.Router();
 const{ getUser,postLogin,getSignup,postSignup,getLogin,postLogout} = require("../controllers/auth");
 const isAuth = require("../middleware/is-auth");
+const {verifyUser } = require("../middleware/verifyUser");
 const { body } = require("express-validator");
+const User = require("../models/user");
 
 
 router.get("/getuser", isAuth, getUser);
+
+router.get("/confirm/:confirmationCode", verifyUser) // confirmation email needed to be validated at fronted as props
 
 router.get("/login", 
 
@@ -19,7 +23,7 @@ router.get("/signup",
 router.post("/signup",
 [
  
-     body()
+     body('email')
      .isEmail()
      .withMessage('Please enter a valid email.')
      .custom((value, { req }) => {

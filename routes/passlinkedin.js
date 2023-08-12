@@ -23,10 +23,11 @@ router.get(
   
   router.get(
     "/auth/linkedin/callback",
-    passport.authenticate("linkedin", {
-        successRedirect: '/profile',
-        failureRedirect: '/login'
-    }),() =>{
+    passport.authenticate("linkedin", 
+     
+ {       successRedirect: '/auth/linkedin',
+        failureRedirect: '/login'}
+    ),() =>{
         const errors = validationResult(req);
         if(!errors.isEmpty())
             console.log(error);
